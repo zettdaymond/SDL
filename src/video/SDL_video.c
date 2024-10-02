@@ -29,6 +29,7 @@
 #include "SDL_blit.h"
 #include "SDL_pixels_c.h"
 #include "SDL_rect_c.h"
+#include "../SDL_window_hook_internal.h"
 #include "../events/SDL_events_c.h"
 #include "../timer/SDL_timer_c.h"
 
@@ -1828,6 +1829,11 @@ SDL_Window *SDL_CreateWindow(const char *title, int x, int y, int w, int h, Uint
     /* If the window was created fullscreen, make sure the mode code matches */
     SDL_UpdateFullscreenMode(window, FULLSCREEN_VISIBLE(window));
 
+    AfterWindowCreationHook hook = SDL_GetAfterWindowCreationHook();
+    if(hook) {
+        hook(window);
+    }
+
     return window;
 }
 
@@ -1896,6 +1902,11 @@ SDL_Window *SDL_CreateWindowFrom(const void *data)
 
     window->display_index = SDL_GetWindowDisplayIndex(window);
     PrepareDragAndDropSupport(window);
+
+    AfterWindowCreationHook hook = SDL_GetAfterWindowCreationHook();
+    if(hook) {
+        hook(window);
+    }
 
     return window;
 }
@@ -2038,6 +2049,11 @@ int SDL_RecreateWindow(SDL_Window *window, Uint32 flags)
     }
 
     SDL_FinishWindowCreation(window, flags);
+
+    AfterWindowCreationHook hook = SDL_GetAfterWindowCreationHook();
+    if(hook) {
+        hook(window);
+    }
 
     return 0;
 }
@@ -3263,6 +3279,11 @@ SDL_Window *SDL_GetFocusWindow(void)
 
 void SDL_DestroyWindow(SDL_Window *window)
 {
+    BeforeWindowDestroyHook hook = SDL_GetBeforeWindowDestroyHook();
+    if(hook) {
+        hook(window);
+    }
+
     SDL_VideoDisplay *display;
 
     CHECK_WINDOW_MAGIC(window, );
